@@ -9,7 +9,10 @@ $ source .zbomber/activate/bin
 $ pip3 -r requirements.txt  
 ```
 ## Specify Orders
-You need to specify things in main bc im the worst.
+This creates 2 bots which join the
+target meeting. The bots alternate sending messages to chat until 100 total are sent.
+Then they leave when the job is done.
+> You still need to write this all in main bc i'm the worst. I'll make it more interactive eventually maybe probably...
 ```python
 zbomber = ZBomber(num_bots=2, link='zoom-link-here')
 zbomber.start_bots()
