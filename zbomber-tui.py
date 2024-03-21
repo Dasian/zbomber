@@ -12,6 +12,14 @@ import sys
 # monochrome
 theme = 'green'
 
+# validator for checking if s is a postive number
+def is_num(s):
+    try:
+        x = int(s)
+        return x >= 0
+    except:
+        return False
+
 class SettingsView(Frame):
     def __init__(self, screen, zbomber):
         super(SettingsView, self).__init__(screen, 
@@ -29,10 +37,9 @@ class SettingsView(Frame):
         # input num, and links
         layout = Layout([5])
         self.add_layout(layout)
-        nums = []
-        for i in range(1, 11):
-            nums.append((str(i),i))
-        layout.add_widget(DropdownList(nums, label="Number of Bots:", name="num_bots"))
+        num_bots_inp = Text("Number of Bots:", "num_bots", validator=is_num)
+        num_bots_inp.value = "4"
+        layout.add_widget(num_bots_inp)
         layout.add_widget(Text("Zoom Link:", "link"))
         layout.add_widget(Text("Meeting ID (optional):", "zid"))
         layout.add_widget(Text("Meeting Password (optional):", "pwd"))
@@ -65,7 +72,10 @@ class SettingsView(Frame):
     def menu_view(self):
         self.save()
         inp = self.data
-        self.zbomber.num_bots = inp['num_bots']
+        try:
+            self.zbomber.num_bots = int(inp['num_bots'])
+        except:
+            self.zbomber.num_bots = 1
         self.zbomber.link = inp['link']
         self.zbomber.zid = inp['zid']
         self.zbomber.pwd = inp['pwd']
@@ -205,7 +215,7 @@ class BotView(Frame):
         layout2 = Layout([100])
         self.add_layout(layout2)
         layout2.add_widget(Divider())
-        layout2.add_widget(Button("Back", self.back), 0)
+        layout2.add_widget(Button("Save", self.save), 0)
         self.fix()
         return
 
@@ -216,8 +226,8 @@ class BotView(Frame):
         self.data = values
         return
 
-    # save information of current bot
-    def back(self):
+    # save information and return to list
+    def save(self):
         self.save()
         bot = self.zbomber.get_curr_bot()
         bot.uname = self.data["uname"]
@@ -237,9 +247,9 @@ class CommandsView(Frame):
         self.set_theme(theme)
         layout = Layout([100])
         self.add_layout(layout)
-        self.spam_count = Text("Number of Messages (spam):", "num_msgs", validator=self.is_num)
+        self.spam_count = Text("Number of Messages (spam):", "num_msgs", validator=is_num)
         self.spam_msg = TextBox(5, "Spam Message:", "spam_msg")
-        cmds = ["Start Bots", "Prepare for Bombing", "Join", "Spam", "Retreat"]
+        cmds = ["Start Bots", "Prepare for Bombing", "Join", "Spam", "Retreat", "Kill Bots"]
         cmd_opts = []
         for i in range(len(cmds)):
             cmd_opts.append((cmds[i], i+1))
@@ -271,13 +281,6 @@ class CommandsView(Frame):
             self.spam_count.disabled = True
             self.spam_msg.disabled = True
 
-    # validator for checking is s is a number
-    def is_num(self, s):
-        try:
-            x = int(s)
-            return True
-        except:
-            return False
 
     # load default values into fields
     def load_defaults(self):
@@ -306,6 +309,8 @@ class CommandsView(Frame):
             self.zbomber.spam(spam_msg, num_msgs)
         elif data['cmd'] == 5:
             self.zbomber.retreat()
+        elif data['cmd'] == 6:
+            self.zbomber.kill_all()
         return
 
     def menu_view(self):

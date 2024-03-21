@@ -213,8 +213,8 @@ class ZBomber():
 
         # TODO get unames from file
         if uname_file == None or True:
-            self.unames = ['Satoru Gojo', 'Joe Brandon', 'Hasan Piker', 'Kay Dot', 'Child Keem', 'Manny Heffley', 
-                           'Heinz Doofenshmirtz', 'Elongated Muskrat', 'A'*50]
+            self.unames = ['Satoru Gojo', 'Hank Pecker', 'Kung Fu Kenny', 'Adolescent Keem', 'Manny Heffley', 
+                           'Heinz Doofenshmirtz', 'Elongated Muskrat', 'Michael Hawk', 'Joe Brandon']
 
         # used to reload values in settings view
         self.tui_data = None
