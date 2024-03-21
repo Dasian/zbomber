@@ -1,8 +1,12 @@
 # DISCLAIMER
 FOR EDUCATIONAL PURPOSES ONLY!!! IF U ABUSE THIS I'M NOT RESPONSIBLE!
 > plz don't go after me
+
 # zbomber
-Create and order an army of bots to do your bidding in zoom meetings.
+Create and order an army of bots to do your bidding in zoom meetings. Takes advantage of
+the "join from your browser" feature. New selenium browser instances allow for
+multiple, independent zoom sessions.
+
 ## Current Functionality
 - Join/Leave Meetings
 - Send/Spam Messages
@@ -24,10 +28,10 @@ Then they leave when the job is done.
 zbomber = ZBomber(num_bots=2, link='zoom-link-here')
 
 # opens a window for each bot
-zbomber.create_bots()
+zbomber.start_bots()
 
 # prepares all bots to join the meeting (opens link and inputs name)
-zbomber.init_bots()
+zbomber.prepare_bots()
 
 # all bots join the meeting and opens chat window
 zbomber.join_all()
