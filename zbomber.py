@@ -291,7 +291,7 @@ def main():
     #   send orders through threads maybe
 
     # set the target link
-    link = 'https://us05web.zoom.us/j/86760623751?pwd=bDKOH7gaQCkYTnNL3BZr8APRg9s31S.1'
+    link = ''
     num_bots = 1
     startup_time = 3
 
