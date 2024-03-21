@@ -109,6 +109,7 @@ class BotListView(Frame):
             active_bots.append((unames[i], i+1))
         return active_bots
 
+    # updates the list of names on load
     def update_list(self):
         self._list_view.options = self.get_list()
 
@@ -179,7 +180,6 @@ class MenuView(Frame):
         else:
             return
 
-# TODO have this do something
 class BotView(Frame):
     def __init__(self, screen, zbomber):
         super(BotView, self).__init__(screen, 
@@ -197,6 +197,9 @@ class BotView(Frame):
         layout.add_widget(Text("Bot Name:", "uname"))
         # is active?
         # current activity?
+        # start?
+        # kill?
+        # send message?
 
         # navigation
         layout2 = Layout([100])
@@ -206,13 +209,14 @@ class BotView(Frame):
         self.fix()
         return
 
-    # TODO get information for selected bot
+    # get information on selected bot
     def load_bot(self):
         bot = self.zbomber.get_curr_bot()
         values = {"uname": bot.uname}
         self.data = values
         return
 
+    # save information of current bot
     def back(self):
         self.save()
         bot = self.zbomber.get_curr_bot()
@@ -225,19 +229,26 @@ class CommandsView(Frame):
                                            screen.height,
                                            screen.width,
                                            hover_focus=True, 
+                                           on_load=self.load_defaults,
                                            title="Commands")
         self.zbomber = zbomber
 
         # command buttons
-        # TODO add spam message and number
         self.set_theme(theme)
-        layout = Layout([100], fill_frame=True)
+        layout = Layout([100])
         self.add_layout(layout)
+        self.spam_count = Text("Number of Messages (spam):", "num_msgs", validator=self.is_num)
+        self.spam_msg = TextBox(5, "Spam Message:", "spam_msg")
         cmds = ["Start Bots", "Prepare for Bombing", "Join", "Spam", "Retreat"]
         cmd_opts = []
         for i in range(len(cmds)):
             cmd_opts.append((cmds[i], i+1))
-        layout.add_widget(RadioButtons(cmd_opts, name="cmd"))
+        layout.add_widget(RadioButtons(cmd_opts, name="cmd", on_change=self.update_widgets))
+
+        layout2 = Layout([100], fill_frame=True)
+        self.add_layout(layout2)
+        layout2.add_widget(self.spam_count)
+        layout2.add_widget(self.spam_msg)
 
         # navigation and execution
         layout2 = Layout([1, 1])
@@ -250,12 +261,39 @@ class CommandsView(Frame):
         self.fix()
         return
 
+    # enable/disable widgets based on selected command
+    def update_widgets(self):
+        self.save()
+        if 'cmd' in self.data and self.data['cmd'] == 4:
+            self.spam_count.disabled = False
+            self.spam_msg.disabled = False
+        else:
+            self.spam_count.disabled = True
+            self.spam_msg.disabled = True
+
+    # validator for checking is s is a number
+    def is_num(self, s):
+        try:
+            x = int(s)
+            return True
+        except:
+            return False
+
+    # load default values into fields
+    def load_defaults(self):
+        self.data = {'cmd': 1, 'num_msgs': '50', 
+                     'spam_msg': ['FROM THE RIVER TO THE SEA', 
+                                  'PALESTINE WILL BE FREE']
+                     }
+        return
+
     # read radio button and execute
     # possible ask for confirmation?
     def execute_cmd(self):
-        self.save()
+        self.save(validate=True)
         # radio buttons starts index at 1
         data = self.data
+        self.zbomber.tmp = data
         if data['cmd'] == 1:
             self.zbomber.start_bots()
         elif data['cmd'] == 2:
@@ -263,7 +301,9 @@ class CommandsView(Frame):
         elif data['cmd'] == 3:
             self.zbomber.join_all()
         elif data['cmd'] == 4:
-            self.zbomber.spam('FREE PALESTINE!!', 10)
+            spam_msg = ' '.join(data['spam_msg'])
+            num_msgs = int(data['num_msgs'])
+            self.zbomber.spam(spam_msg, num_msgs)
         elif data['cmd'] == 5:
             self.zbomber.retreat()
         return
@@ -272,7 +312,7 @@ class CommandsView(Frame):
         raise NextScene("Menu")
 
 # render the scenes homie
-def demo(screen, scene, zbomber):
+def render(screen, scene, zbomber):
     scenes = [
             Scene([SettingsView(screen, zbomber)], -1, name="Settings"),
             Scene([BotListView(screen, zbomber)], -1, name="Bot List"),
@@ -290,7 +330,7 @@ def main():
     last_scene = None
     while True:
         try:
-            Screen.wrapper(demo, catch_interrupt=True, arguments=[last_scene, zbomber])
+            Screen.wrapper(render, catch_interrupt=True, arguments=[last_scene, zbomber])
             # testing
             print('zbomber.tmp', zbomber.tmp)
             sys.exit(0)

@@ -230,19 +230,26 @@ class ZBomber():
             bot.start()
 
     # updates bot list without creating windows
+    # called whenever settings is updated
     def refresh_bots(self):
-        # add more bots
+        # update bot count
         if len(self.bots) < self.num_bots:
+            # add more
             for i in range(len(self.bots), self.num_bots):
                 uname = self.unames[i%len(self.unames)]
                 bot = ZBot(uname=uname, link=self.link)
                 self.bots.append(bot)
-        # remove bots
         else:
+            # remove
             while len(self.bots) > self.num_bots:
-                # kill the bot
                 bot = self.bots.pop(len(self.bots)-1)
                 bot.die()
+        # update values
+        for bot in self.bots:
+            bot.link = self.link
+            bot.zid = self.zid
+            bot.pwd = self.pwd
+
         return
     
     # get list of bot unames
