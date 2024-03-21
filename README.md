@@ -44,13 +44,18 @@ zbomber.prepare_bots()
 # all bots join the meeting and opens chat window
 zbomber.join_all()
 
-# spam messages then they all leave
+# spam messages
 zbomber.spam('FREE PALESTINE', 100)
+
+# leave meeting
 zbomber.retreat()
+
+# close window for each bot
+zbomber.kill_all()
 ```
 Then you run the script.
 ```console
-$ source .zbomber/activate/bin
+$ source .zbomber/bin/activate
 $ python3 zbomber.py
 ```
 ### Interactive
