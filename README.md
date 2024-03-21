@@ -1,6 +1,11 @@
+# DISCLAIMER
+FOR EDUCATIONAL PURPOSES ONLY!!! IF U ABUSE THIS I'M NOT RESPONSIBLE!
+> plz don't go after me
 # zbomber
-Create and order an army of bots to do your bidding in zoom meetings.  
-Bots can join, leave, send a message, and spam messages.
+Create and order an army of bots to do your bidding in zoom meetings.
+## Current Functionality
+- Join/Leave Meetings
+- Send/Spam Messages
 
 ## Install Requirements
 ```console
@@ -28,7 +33,7 @@ zbomber.init_bots()
 zbomber.join_all()
 
 # spam messages then they all leave
-zbombser.spam('FREE PALESTINE', 100)
+zbomber.spam('FREE PALESTINE', 100)
 zbomber.retreat()
 ```
 Then you run the script.
