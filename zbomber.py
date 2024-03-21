@@ -213,8 +213,8 @@ class ZBomber():
             self.unames = ['Satoru Gojo', 'Joe Brandon', 'Hasan Piker', 'Kay Dot', 'Child Keem', 'Manny Heffley', 
                            'Heinz Doofenshmirtz', 'Elongated Muskrat', 'A'*50]
 
-        # used for testing with tui
-        self.tmp = None
+        # used to reload values in settings view
+        self.tui_data = None
 
     # create all bots and initializes bots
     # TODO reset bots when num_bots change

@@ -18,6 +18,7 @@ class SettingsView(Frame):
                                            screen.height,
                                            screen.width,
                                            hover_focus=True, 
+                                           on_load=self.reload_values,
                                            title="ZBomber Settings")
         # bot controller
         self.zbomber = zbomber
@@ -26,7 +27,6 @@ class SettingsView(Frame):
         self.set_theme(theme)
 
         # input num, and links
-        # TODO fill if already inputted
         layout = Layout([5])
         self.add_layout(layout)
         nums = []
@@ -56,6 +56,11 @@ class SettingsView(Frame):
         self.fix()
         return
 
+    # reload previously set values
+    def reload_values(self):
+        self.data = self.zbomber.tui_data
+        return
+
     # pass input to zbomber then switch to menu
     def menu_view(self):
         self.save()
@@ -65,7 +70,7 @@ class SettingsView(Frame):
         self.zbomber.zid = inp['zid']
         self.zbomber.pwd = inp['pwd']
         self.zbomber.uname_file = inp['uname_file']
-
+        self.zbomber.tui_data = inp
         raise NextScene("Menu")
 
 class BotListView(Frame):
@@ -278,7 +283,7 @@ def main():
         try:
             Screen.wrapper(demo, catch_interrupt=True, arguments=[last_scene, zbomber])
             # testing
-            print('zbomber.tmp', zbomber.tmp)
+            print('zbomber.tui_data', zbomber.tui_data)
             sys.exit(0)
         except ResizeScreenError as e:
             last_scene = e.scene
