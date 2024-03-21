@@ -16,7 +16,11 @@ class ZBot():
         self.zid = zid
         self.pwd = pwd
         self.cookie_clicked = False
+
+    # creates window
+    def start(self):
         self.generate_driver()
+        return
 
     # creates and sets the selenium browser driver
     def generate_driver(self):
@@ -73,7 +77,6 @@ class ZBot():
         elif self.zid != None and self.pwd != None:
             self.id_connect()
         else:
-            print('missing credentials, stopping...')
             return False
 
         # removing zoom browser popup
@@ -215,25 +218,33 @@ class ZBomber():
 
         # used to reload values in settings view
         self.tui_data = None
+        # index of the selected bot in tui
+        self.curr_bot = None
 
-    # create all bots and initializes bots
-    # TODO reset bots when num_bots change
-    def create_bots(self):
-        print('starting create bots')
+        # for tui testing
+        self.tmp = None
 
+    # create windows for all bots
+    def start_bots(self):
+        for bot in self.bots:
+            bot.start()
+
+    # updates bot list without creating windows
+    def refresh_bots(self):
+        # add more bots
         if len(self.bots) < self.num_bots:
-            print('adding bots')
             for i in range(len(self.bots), self.num_bots):
                 uname = self.unames[i%len(self.unames)]
                 bot = ZBot(uname=uname, link=self.link)
                 self.bots.append(bot)
+        # remove bots
         else:
-            print('killing bots')
             while len(self.bots) > self.num_bots:
                 # kill the bot
                 bot = self.bots.pop(len(self.bots)-1)
                 bot.die()
-
+        return
+    
     # get list of bot unames
     def get_unames(self):
         unames = []
@@ -242,7 +253,7 @@ class ZBomber():
         return unames
     
     # prepares all bots to join the meeting
-    def init_bots(self):
+    def prepare_bots(self):
         for bot in self.bots:
             bot.meeting_init()
 
@@ -271,13 +282,18 @@ class ZBomber():
             try:
                 bot.leave()
             except:
-                print(bot.uname, "can't retreat!")
                 continue
         return
     
     def kill_all(self):
         for bot in self.bots:
             bot.die()
+
+    def get_curr_bot(self):
+        if self.curr_bot != None:
+            return self.bots[self.curr_bot]
+        else:
+            return None
 
 def main():
     # TODO 
@@ -308,8 +324,8 @@ def main():
     zbomber = ZBomber(num_bots=num_bots, link=link)
 
     # joins meeting and opens chat window
-    zbomber.create_bots()
-    zbomber.init_bots()
+    zbomber.start_bots()
+    zbomber.prepare_bots()
     zbomber.join_all()
 
     # for now set your orders here
@@ -319,16 +335,16 @@ def main():
 
     print('increasing bots to 2')
     zbomber.num_bots = 2
-    zbomber.create_bots()
-    zbomber.init_bots()
+    zbomber.start_bots()
+    zbomber.prepare_bots()
     zbomber.join_all()
     zbomber.spam('FREE PALESTINE 2', 10)
     zbomber.retreat()
 
     print('decreasing bots to 1')
     zbomber.num_bots = 1
-    zbomber.create_bots()
-    zbomber.init_bots()
+    zbomber.start_bots()
+    zbomber.prepare_bots()
     zbomber.join_all()
     zbomber.spam('FREE PALESTINE 3', 10)
     zbomber.retreat()

@@ -71,6 +71,7 @@ class SettingsView(Frame):
         self.zbomber.pwd = inp['pwd']
         self.zbomber.uname_file = inp['uname_file']
         self.zbomber.tui_data = inp
+        self.zbomber.refresh_bots()
         raise NextScene("Menu")
 
 class BotListView(Frame):
@@ -79,17 +80,16 @@ class BotListView(Frame):
                                            screen.height,
                                            screen.width,
                                            hover_focus=True, 
-                                           on_load=self.get_list,
+                                           on_load=self.update_list,
                                            title="Bot List")
         self.zbomber = zbomber
         self.set_theme(theme)
 
-        self._list_view = ListBox(Widget.FILL_FRAME, self.get_list(),
-                            name="bots", add_scroll_bar=True)
-
         # bot list
         layout = Layout([100], fill_frame=True)
         self.add_layout(layout)
+        self._list_view = ListBox(Widget.FILL_FRAME, self.get_list(),
+                            name="bot_index", add_scroll_bar=True)
         layout.add_widget(self._list_view)
         layout.add_widget(Divider())
 
@@ -109,10 +109,16 @@ class BotListView(Frame):
             active_bots.append((unames[i], i+1))
         return active_bots
 
+    def update_list(self):
+        self._list_view.options = self.get_list()
+
     def bot_view(self):
+        self.save()
+        self.zbomber.curr_bot = self.data["bot_index"] - 1
         raise NextScene("Bot")
 
     def menu_view(self):
+        self.save()
         raise NextScene("Menu")
 
 class MenuView(Frame):
@@ -180,35 +186,38 @@ class BotView(Frame):
                                            screen.height,
                                            screen.width,
                                            hover_focus=True, 
-                                           on_load=self.get_bot,
+                                           on_load=self.load_bot,
                                            title="Bot")
         self.set_theme(theme)
+        self.zbomber = zbomber
 
         # bot info
         layout = Layout([100], fill_frame=True)
         self.add_layout(layout)
-        layout.add_widget(Text("Bot Name:", "bot name"))
+        layout.add_widget(Text("Bot Name:", "uname"))
         # is active?
         # current activity?
 
         # navigation
-        layout2 = Layout([100, 1])
+        layout2 = Layout([100])
         self.add_layout(layout2)
         layout2.add_widget(Divider())
-        layout2.add_widget(Button("Back", self.bot_list_view), 0)
-        layout2.add_widget(Button("Menu", self.menu_view), 1)
+        layout2.add_widget(Button("Back", self.back), 0)
         self.fix()
         return
 
     # TODO get information for selected bot
-    def get_bot(self):
+    def load_bot(self):
+        bot = self.zbomber.get_curr_bot()
+        values = {"uname": bot.uname}
+        self.data = values
         return
 
-    def bot_list_view(self):
+    def back(self):
+        self.save()
+        bot = self.zbomber.get_curr_bot()
+        bot.uname = self.data["uname"]
         raise NextScene("Bot List")
-
-    def menu_view(self):
-        raise NextScene("Menu")
 
 class CommandsView(Frame):
     def __init__(self, screen, zbomber):
@@ -224,7 +233,7 @@ class CommandsView(Frame):
         self.set_theme(theme)
         layout = Layout([100], fill_frame=True)
         self.add_layout(layout)
-        cmds = ["Create Bots", "Prepare for Bombing", "Join", "Spam", "Retreat"]
+        cmds = ["Start Bots", "Prepare for Bombing", "Join", "Spam", "Retreat"]
         cmd_opts = []
         for i in range(len(cmds)):
             cmd_opts.append((cmds[i], i+1))
@@ -248,9 +257,9 @@ class CommandsView(Frame):
         # radio buttons starts index at 1
         data = self.data
         if data['cmd'] == 1:
-            self.zbomber.create_bots()
+            self.zbomber.start_bots()
         elif data['cmd'] == 2:
-            self.zbomber.init_bots()
+            self.zbomber.prepare_bots()
         elif data['cmd'] == 3:
             self.zbomber.join_all()
         elif data['cmd'] == 4:
@@ -283,7 +292,7 @@ def main():
         try:
             Screen.wrapper(demo, catch_interrupt=True, arguments=[last_scene, zbomber])
             # testing
-            print('zbomber.tui_data', zbomber.tui_data)
+            print('zbomber.tmp', zbomber.tmp)
             sys.exit(0)
         except ResizeScreenError as e:
             last_scene = e.scene
