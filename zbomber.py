@@ -15,11 +15,8 @@ class ZBot():
         self.link = link
         self.zid = zid
         self.pwd = pwd
+        self.cookie_clicked = False
         self.generate_driver()
-
-        # join meeting and prepare chat window
-        self.join_meeting()
-        self.chat_init()
 
     # creates and sets the selenium browser driver
     def generate_driver(self):
@@ -67,8 +64,8 @@ class ZBot():
         keyboard.release(Key.enter)
         return
 
-    # adds a bot to the meeting
-    def join_meeting(self):
+    # prepare the bot up until joining the meeting
+    def meeting_init(self):
 
         # open the zoom meeting in browser
         if self.link != None:
@@ -83,9 +80,11 @@ class ZBot():
         self.dismiss_popup()
 
         # remove cookie banner
-        cookie_xpath = '/html/body/div[4]/div[3]/div/div/div[1]/button'
-        cookie = self.wait.until(EC.element_to_be_clickable((By.XPATH, cookie_xpath)))
-        cookie.click()
+        if not self.cookie_clicked:
+            cookie_xpath = '/html/body/div[4]/div[3]/div/div/div[1]/button'
+            cookie = self.wait.until(EC.element_to_be_clickable((By.XPATH, cookie_xpath)))
+            cookie.click()
+            self.cookie_clicked = True
 
         # click launch meeting to reveal browser link
         join_xpath = '/html/body/div[2]/div[2]/div/div[1]/div'
@@ -110,8 +109,8 @@ class ZBot():
         name.clear()
         name.send_keys(self.uname)
 
-        # TODO could probably split it here so that all the bots join at once
-        # meeting init and join meeting
+    # join the meeting and open the chat window
+    def join_meeting(self):
 
         # join meeting
         join_xpath = '/html/body/div[2]/div[2]/div/div[1]/div/div[2]/button'
@@ -120,27 +119,35 @@ class ZBot():
 
         # return driver frame to parent (might not be necessary? idk idc)
         self.driver.switch_to.default_content()
-        return True
 
-    # opens the chat window
-    def chat_init(self):
+        # opens the chat window
         iframe_xpath = '/html/body/div[1]/div[2]/div/iframe'
         iframe = self.wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, iframe_xpath)))
         try:
+            # chat button visible
             chat_btn_xpath = '//*[@id="foot-bar"]/div[2]/div[3]/div/button'
             chat_btn = self.driver.find_element(By.XPATH, chat_btn_xpath)
             chat_btn.click()
             chat_btn.click()
         except:
             # chat button not visible, open chat from more
+            # faster wait
+            wait = WebDriverWait(self.driver, 2)
             more_xpath = '//div[@feature-type="more"]'
-            more_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, more_xpath)))
+            more_btn = wait.until(EC.element_to_be_clickable((By.XPATH, more_xpath)))
             more_btn.click()
             more_btn.click()
+
             # chat button from more
+            # sometimes more needs 1 click, sometimes it needs 2, idk
             chat_btn_xpath = '//span[contains(text(), "Chat")]'
-            chat_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, chat_btn_xpath)))
-            chat_btn.click()
+            try:
+                chat_btn = wait.until(EC.element_to_be_clickable((By.XPATH, chat_btn_xpath)))
+                chat_btn.click()
+            except:
+                more_btn.click()
+                chat_btn = wait.until(EC.element_to_be_clickable((By.XPATH, chat_btn_xpath)))
+                chat_btn.click()
         return
 
     # send a message in chat
@@ -175,36 +182,74 @@ class ZBot():
         finally:
             # generate a new name? or keep the same
             self.generate_driver()
+            self.meeting_init()
             self.join_meeting()
-            self.chat_init()
             return
 
+    # kill the browser
+    def die(self):
+        # attempt to leave?
+        # kill browser
+        try:
+            self.driver.close()
+        finally:
+            return
+
+    # TODO rename in meeting
+    def rename(self):
+        return
+
 class ZBomber():
-    def __init__(self, num_bots=1, link=None, zid=None, zpwd=None, names=['Satoru Gojo']):
+    def __init__(self, num_bots=1, link=None, zid=None, zpwd=None, uname_file=None):
         self.num_bots = num_bots
         self.link = link
         self.zid = zid
         self.zpwd = zpwd
-        self.names = names
-        self.name = 'Satoru Gojo'
+        self.uname_file = uname_file
         self.bots = []
-        random.seed()
-    
-    # initalizes all the bots by joining the meeting
-    # and opening the chat window
-    # TODO maybe make it so they stop right before joining
-    def start_bots(self):
-        for i in range(self.num_bots):
-            bot = ZBot(uname=self.gen_name(), link=self.link)
-            self.bots.append(bot)
-    
-    # picks a random username from the list
-    def gen_name(self):
-        return self.names[random.randint(0, len(self.names)-1)]
 
-    # returns a list of ZBot objects
-    def get_bots(self):
-        return self.bots
+        # TODO get unames from file
+        if uname_file == None or True:
+            self.unames = ['Satoru Gojo', 'Joe Brandon', 'Hasan Piker', 'Kay Dot', 'Child Keem', 'Manny Heffley', 
+                           'Heinz Doofenshmirtz', 'Elongated Muskrat', 'A'*50]
+
+        # used for testing with tui
+        self.tmp = None
+
+    # create all bots and initializes bots
+    # TODO reset bots when num_bots change
+    def create_bots(self):
+        print('starting create bots')
+
+        if len(self.bots) < self.num_bots:
+            print('adding bots')
+            for i in range(len(self.bots), self.num_bots):
+                uname = self.unames[i%len(self.unames)]
+                bot = ZBot(uname=uname, link=self.link)
+                self.bots.append(bot)
+        else:
+            print('killing bots')
+            while len(self.bots) > self.num_bots:
+                # kill the bot
+                bot = self.bots.pop(len(self.bots)-1)
+                bot.die()
+
+    # get list of bot unames
+    def get_unames(self):
+        unames = []
+        for bot in self.bots:
+            unames.append(bot.uname)
+        return unames
+    
+    # prepares all bots to join the meeting
+    def init_bots(self):
+        for bot in self.bots:
+            bot.meeting_init()
+
+    # have all bots join the meeting
+    def join_all(self):
+        for bot in self.bots:
+            bot.join_meeting()
 
     # repeatedly send a message from all bots
     def spam(self, msg, num_msgs=50):
@@ -229,6 +274,10 @@ class ZBomber():
                 print(bot.uname, "can't retreat!")
                 continue
         return
+    
+    def kill_all(self):
+        for bot in self.bots:
+            bot.die()
 
 def main():
     # TODO 
@@ -242,9 +291,8 @@ def main():
     #   send orders through threads maybe
 
     # set the target link
-    link = ''
-    names = ['Satoru Gojo', 'Joe Biden', 'Hasan Piker', 'John Doe', 'A'*50, 'Manny Heffley', 'Joe Brandon']
-    num_bots = 3
+    link = 'https://us05web.zoom.us/j/86760623751?pwd=bDKOH7gaQCkYTnNL3BZr8APRg9s31S.1'
+    num_bots = 1
     startup_time = 3
 
     if link == '':
@@ -257,15 +305,34 @@ def main():
     sleep(startup_time)
 
     # initializing bot controller
-    zbomber = ZBomber(num_bots=num_bots, link=link, names=names)
+    zbomber = ZBomber(num_bots=num_bots, link=link)
 
     # joins meeting and opens chat window
-    zbomber.start_bots()
+    zbomber.create_bots()
+    zbomber.init_bots()
+    zbomber.join_all()
 
     # for now set your orders here
     # this sends 30 total messages split between all bots and then they all leave
-    zbomber.spam('FREE PALESTINE', 30)
+    zbomber.spam('FREE PALESTINE', 10)
     zbomber.retreat()
+
+    print('increasing bots to 2')
+    zbomber.num_bots = 2
+    zbomber.create_bots()
+    zbomber.init_bots()
+    zbomber.join_all()
+    zbomber.spam('FREE PALESTINE 2', 10)
+    zbomber.retreat()
+
+    print('decreasing bots to 1')
+    zbomber.num_bots = 1
+    zbomber.create_bots()
+    zbomber.init_bots()
+    zbomber.join_all()
+    zbomber.spam('FREE PALESTINE 3', 10)
+    zbomber.retreat()
+
     return
 
 if __name__ == "__main__":
