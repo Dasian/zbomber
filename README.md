@@ -12,10 +12,17 @@ multiple, independent zoom sessions.
 - Send/Spam Messages
 
 ## Install Requirements
+### Linux
 ```console
 $ python3 -m venv .zbomber  
 $ source .zbomber/activate/bin  
 $ pip3 -r requirements.txt  
+```
+### Windows
+```console
+$ python -m venv .zbomber
+$ call .zbomber/scripts/activate.bat
+$ pip3 install -r requirements.txt
 ```
 ## Specify Commands
 ### Programatically
