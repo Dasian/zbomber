@@ -13,16 +13,16 @@ multiple, independent zoom sessions.
 
 ## Install Requirements
 ### Linux
-```console
-$ python3 -m venv .zbomber  
-$ source .zbomber/activate/bin  
-$ pip3 -r requirements.txt  
+```bash
+python3 -m venv .zbomber  
+source .zbomber/bin/activate
+pip3 install -r requirements.txt  
 ```
 ### Windows
-```console
-$ python -m venv .zbomber
-$ call .zbomber/scripts/activate.bat
-$ pip3 install -r requirements.txt
+```cmd
+python -m venv .zbomber
+call .zbomber/scripts/activate.bat
+pip3 install -r requirements.txt
 ```
 ## Specify Commands
 ### Programatically
