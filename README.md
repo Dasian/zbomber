@@ -8,6 +8,7 @@ the "join from your browser" feature. New selenium browser instances allow for
 multiple, independent zoom sessions.
 
 ## Current Functionality
+- Only tested on Linux (just need to deal with browser popups on windows)
 - Join/Leave Meetings
 - Send/Spam Messages
 
