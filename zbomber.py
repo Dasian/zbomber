@@ -15,11 +15,13 @@ class ZBot():
         self.link = link
         self.zid = zid
         self.pwd = pwd
+        self.status = 'Not Started'
         self.cookie_clicked = False
 
     # creates window
     def start(self):
         self.generate_driver()
+        self.status = 'Idle'
         return
 
     # creates and sets the selenium browser driver
@@ -111,6 +113,9 @@ class ZBot():
         name = self.wait.until(EC.element_to_be_clickable((By.XPATH, name_xpath)))
         name.clear()
         name.send_keys(self.uname)
+        
+        # update status
+        self.status = 'Ready to Join'
 
     # join the meeting and open the chat window
     def join_meeting(self):
@@ -151,10 +156,12 @@ class ZBot():
                 more_btn.click()
                 chat_btn = wait.until(EC.element_to_be_clickable((By.XPATH, chat_btn_xpath)))
                 chat_btn.click()
+        self.status = 'In Meeting'
         return
 
     # send a message in chat
     def send_chat(self, msg):
+        self.status = 'Sending Chat'
         try: 
             chat_xpath = '//*[@id="wc-container-right"]/div[1]/div[3]/div[1]/div[2]/div[1]/div[1]/div[1]'
             chat_box = self.driver.find_element(By.XPATH, chat_xpath)
@@ -175,6 +182,7 @@ class ZBot():
         leave_xpath = '//button[contains(text(), "Leave Meeting")]'
         leave_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, leave_xpath)))
         leave_btn.click()
+        self.status = 'Idle'
         return
 
     # rejoin a meeting
@@ -196,6 +204,7 @@ class ZBot():
         try:
             self.driver.close()
         finally:
+            self.status = 'Dead'
             return
 
     # TODO rename in meeting
@@ -307,8 +316,6 @@ def main():
     # implement id/pass zoom meetings
     # deal with waiting rooms
     # add ability for bots to sign up with temp emails
-    # get vars from user input
-    #   maybe tui mode and cmdline mode
     # better error handling
     # add more bot orders and make them more efficient
     #   send orders through threads maybe

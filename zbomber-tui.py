@@ -41,8 +41,10 @@ class SettingsView(Frame):
         num_bots_inp.value = "4"
         layout.add_widget(num_bots_inp)
         layout.add_widget(Text("Zoom Link:", "link"))
-        layout.add_widget(Text("Meeting ID (optional):", "zid"))
-        layout.add_widget(Text("Meeting Password (optional):", "pwd"))
+        zid = Text("Meeting ID (optional):", "zid")
+        layout.add_widget(zid)
+        pwd = Text("Meeting Password (optional):", "pwd")
+        layout.add_widget(pwd)
 
         # username list
         layout2 = Layout([100], fill_frame=True)
@@ -50,8 +52,12 @@ class SettingsView(Frame):
         layout2.add_widget(Label("Username List:"))
         # only shows txt files
         browser = FileBrowser(8, '.', name="uname_file", file_filter=".*.txt$")
-        browser.disabled = False
         layout2.add_widget(browser)
+
+        # will enable once implemented
+        browser.disabled = True
+        pwd.disabled = True
+        zid.disabled = True
 
         # navigation
         layout3 = Layout([100])
@@ -200,34 +206,104 @@ class BotView(Frame):
                                            title="Bot")
         self.set_theme(theme)
         self.zbomber = zbomber
+        self._screen = screen
 
         # bot info
-        layout = Layout([100], fill_frame=True)
+        layout = Layout([100])
         self.add_layout(layout)
         layout.add_widget(Text("Bot Name:", "uname"))
-        # is active?
-        # current activity?
-        # start?
-        # kill?
+        # can't figure out updating status labels without crashing?
+
+        # individual bot commands
+        layout2 = Layout([1, 99], fill_frame=True)
+        self.add_layout(layout2)
+        layout2.add_widget(Button("Start", self.start))
+        layout2.add_widget(Button("Prepare for Bombing", self.prepare))
+        layout2.add_widget(Button("Join Meeting", self.join))
+        layout2.add_widget(Button("Leave Meeting", self.leave))
+        layout2.add_widget(Button("Kill", self.kill))
         # send message?
 
         # navigation
-        layout2 = Layout([100])
+        layout2 = Layout([1, 1])
         self.add_layout(layout2)
         layout2.add_widget(Divider())
-        layout2.add_widget(Button("Save", self.save), 0)
+        layout2.add_widget(Divider(), 1)
+        layout2.add_widget(Button("Cancel", self.cancel), 0)
+        layout2.add_widget(Button("Save", self.save_bot), 1)
         self.fix()
         return
 
     # get information on selected bot
     def load_bot(self):
-        bot = self.zbomber.get_curr_bot()
-        values = {"uname": bot.uname}
+        self.bot = self.zbomber.get_curr_bot()
+        values = {"uname": self.bot.uname}
         self.data = values
         return
 
+    def start(self, opt=-1):
+        if opt == 0:
+            return
+        elif opt == 1:
+            self.bot.start()
+        buttons = ["No", "Yes"]
+        msg = "Start " + self.bot.uname + "?"
+        if opt == -1:
+            self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.start))
+        return
+
+    def prepare(self, opt=-1):
+        if opt == 0:
+            return
+        elif opt == 1:
+            self.bot.meeting_init()
+        buttons = ["No", "Yes"]
+        msg = "Prepare for Bombing?"
+        if opt == -1:
+            self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.prepare))
+        return
+
+    def join(self, opt=-1):
+        if opt == 0:
+            return
+        elif opt == 1:
+            self.bot.join_meeting()
+        buttons = ["No", "Yes"]
+        msg = "Join Meeting?"
+        if opt == -1:
+            self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.join))
+        return
+
+    def leave(self, opt=-1):
+        if opt == 0:
+            return
+        elif opt == 1:
+            self.bot.leave()
+        buttons = ["No", "Yes"]
+        msg = "Leave Meeting?"
+        if opt == -1:
+            self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.leave))
+        return
+
+    def kill(self, opt=-1):
+        if opt == 0:
+            return
+        elif opt == 1:
+            self.bot.die()
+        buttons = ["No", "Yes"]
+        msg = "Kill " + self.bot.uname + "?"
+        if opt == -1:
+            self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.kill))
+        return
+
+    # go back to bot list view without saving
+    def cancel(self):
+        self.save()
+        self.zbomber.tmp = self.data
+        raise NextScene("Bot List")
+
     # save information and return to list
-    def save(self):
+    def save_bot(self):
         self.save()
         bot = self.zbomber.get_curr_bot()
         bot.uname = self.data["uname"]
@@ -265,7 +341,7 @@ class CommandsView(Frame):
         self.add_layout(layout2)
         layout2.add_widget(Divider())
         layout2.add_widget(Divider(), 1)
-        layout2.add_widget(Button("Execute", self.execute_cmd), 0)
+        layout2.add_widget(Button("Execute", self.confirm_cmd), 0)
         layout2.add_widget(Button("Menu", self.menu_view), 1)
 
         self.fix()
@@ -291,12 +367,12 @@ class CommandsView(Frame):
         return
 
     # read radio button and execute
-    # possible ask for confirmation?
-    def execute_cmd(self):
-        self.save(validate=True)
+    def execute_cmd(self, opt):
+        if opt == 0:
+            return
         # radio buttons starts index at 1
+        self.save()
         data = self.data
-        self.zbomber.tmp = data
         if data['cmd'] == 1:
             self.zbomber.start_bots()
         elif data['cmd'] == 2:
@@ -304,13 +380,40 @@ class CommandsView(Frame):
         elif data['cmd'] == 3:
             self.zbomber.join_all()
         elif data['cmd'] == 4:
+            try:
+                num_msgs = int(data['num_msgs'])
+            except:
+                msg = "Input a valid number!"
+                buttons = ["OK"]
+                self._scene.add_effect(PopUpDialog(self._screen, msg, buttons))
+                return
             spam_msg = ' '.join(data['spam_msg'])
-            num_msgs = int(data['num_msgs'])
             self.zbomber.spam(spam_msg, num_msgs)
         elif data['cmd'] == 5:
             self.zbomber.retreat()
         elif data['cmd'] == 6:
             self.zbomber.kill_all()
+        return
+
+    # asks for confirmation before executing cmd
+    def confirm_cmd(self):
+        self.save()
+        opt = self.data['cmd']
+        buttons = ["No", "Yes"]
+        msg = ""
+        if opt == 1:
+            msg = "Start Bots?"
+        elif opt == 2:
+            msg = "Prepare for Bombing?"
+        elif opt == 3:
+            msg = "Join Meeting?"
+        elif opt == 4:
+            msg = "Start Spamming?"
+        elif opt == 5:
+            msg = "Retreat?"
+        elif opt == 6:
+            msg = "Kill All Bots?"
+        self._scene.add_effect(PopUpDialog(self._screen, msg, buttons, on_close=self.execute_cmd))
         return
 
     def menu_view(self):
@@ -341,7 +444,6 @@ def main():
             sys.exit(0)
         except ResizeScreenError as e:
             last_scene = e.scene
-
 
 if __name__ == '__main__':
     main()
