@@ -1,3 +1,4 @@
 selenium	# browser to load zoom session
 pynput		# keyboard to interact with browser prompts
 asciimatics	# tui library
+pywinauto; platform_system == 'Windows'

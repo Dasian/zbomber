@@ -6,7 +6,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pynput.keyboard import Key, Controller
 from time import sleep
-import random
+
+import sys
+is_windows = sys.platform.startswith('win')
+if is_windows:
+    from pywinauto import Application
+    from pywinauto.findwindows import find_elements
+    from pywinauto.controls.hwndwrapper import HwndWrapper
+
 
 # zoom bot object
 class ZBot():
@@ -17,6 +24,12 @@ class ZBot():
         self.pwd = pwd
         self.status = 'Not Started'
         self.cookie_clicked = False
+        # 5 second max wait for element
+        self.wait_time = 5
+
+        # for moving a window to the foreground in windows
+        self.window = None
+        self.app = None
 
     # creates window
     def start(self):
@@ -42,8 +55,7 @@ class ZBot():
         chrome_options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=chrome_options)
         # used to wait for elements to load before trying to access them
-        wait_time = 5
-        self.wait = WebDriverWait(self.driver, wait_time)
+        self.wait = WebDriverWait(self.driver, self.wait_time)
         return
 
     # TODO modify and test this, doesn't actually work im guessing
@@ -55,7 +67,7 @@ class ZBot():
         )
 
         # ? Entering password
-        pwd_box = driver.find_element(By.ID, "input-for-pwd")
+        pwd_box = self.driver.find_element(By.ID, "input-for-pwd")
         pwd_box.clear()
         pwd_box.send_keys(self.pwd)
         return
@@ -72,6 +84,10 @@ class ZBot():
 
     # prepare the bot up until joining the meeting
     def meeting_init(self):
+        # put window into the foreground (for browser popup)
+        # if you switch windows after navigating to link it tries to download zoom?
+        if is_windows:
+            self.window.set_focus()
 
         # open the zoom meeting in browser
         if self.link != None:
@@ -233,10 +249,24 @@ class ZBomber():
         # for tui testing
         self.tmp = None
 
+        # moving window to foreground on windows
+        self.connected_windows = []
+
     # create windows for all bots
     def start_bots(self):
         for bot in self.bots:
             bot.start()
+            if is_windows:
+                # find selenium window and connect it to the bot
+                # to move it to the foreground
+                cname = '.*data'
+                bot.app = Application()
+                windows = find_elements(title_re=cname)
+                w = windows[0]
+                for w in windows:
+                    if w not in self.connected_windows:
+                        bot.window = HwndWrapper(w)
+                        self.connected_windows.append(w)
 
     # updates bot list without creating windows
     # called whenever settings is updated
@@ -257,8 +287,7 @@ class ZBomber():
         for bot in self.bots:
             bot.link = self.link
             bot.zid = self.zid
-            bot.pwd = self.pwd
-
+            bot.pwd = self.zpwd
         return
     
     # get list of bot unames
@@ -321,8 +350,8 @@ def main():
     #   send orders through threads maybe
 
     # set the target link
-    link = ''
-    num_bots = 1
+    link = 'https://us05web.zoom.us/j/81645961485?pwd=n8CNbI3aaX3278sDvQ0o26ltC7KzmV.1'
+    num_bots = 5
     startup_time = 3
 
     if link == '':
@@ -334,35 +363,15 @@ def main():
     print('zbomber starting in',startup_time,'seconds with',num_bots,'bots. prepare yourself...')
     sleep(startup_time)
 
-    # initializing bot controller
+    # bot controller example
     zbomber = ZBomber(num_bots=num_bots, link=link)
-
-    # joins meeting and opens chat window
+    zbomber.refresh_bots()
     zbomber.start_bots()
     zbomber.prepare_bots()
     zbomber.join_all()
-
-    # for now set your orders here
-    # this sends 30 total messages split between all bots and then they all leave
-    zbomber.spam('FREE PALESTINE', 10)
+    zbomber.spam('AHHHHHHHHH')
     zbomber.retreat()
-
-    print('increasing bots to 2')
-    zbomber.num_bots = 2
-    zbomber.start_bots()
-    zbomber.prepare_bots()
-    zbomber.join_all()
-    zbomber.spam('FREE PALESTINE 2', 10)
-    zbomber.retreat()
-
-    print('decreasing bots to 1')
-    zbomber.num_bots = 1
-    zbomber.start_bots()
-    zbomber.prepare_bots()
-    zbomber.join_all()
-    zbomber.spam('FREE PALESTINE 3', 10)
-    zbomber.retreat()
-
+    zbomber.kill_all()
     return
 
 if __name__ == "__main__":
