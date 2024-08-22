@@ -1,8 +1,7 @@
-# DISCLAIMER
-FOR EDUCATIONAL PURPOSES ONLY!!! IF U ABUSE THIS I'M NOT RESPONSIBLE!
-> plz don't go after me
-
 # zbomber
+> [!CAUTION]
+> FOR EDUCATIONAL PURPOSES ONLY!!! IF YOU ABUSE THIS I'M NOT RESPONSIBLE!
+
 Create and order an army of bots to do your bidding in zoom meetings. Takes advantage of
 the "join from your browser" feature. New selenium browser instances allow for
 multiple, independent zoom sessions. Tested on Windows and Linux
@@ -33,7 +32,8 @@ pip3 install -r requirements.txt
 ## Specify Commands
 > Make sure to activate the venv if you created one!
 ### Terminal User Interface (tui)
-Lets you pick individual or mass bot commands from a menu.
+Lets you pick individual or mass bot commands from a menu. Navigate the
+interface with `tab` and arrow keys.
 #### Windows
 > Run this in cmd
 ```cmd
