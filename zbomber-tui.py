@@ -9,7 +9,8 @@ import zbomber as zb
 import sys
 
 # theme for the views
-# monochrome
+# asciimatic theme options
+# monochrome, green, bright, tlj256
 theme = 'green'
 
 # validator for checking if s is a postive number
@@ -361,8 +362,8 @@ class CommandsView(Frame):
     # load default values into fields
     def load_defaults(self):
         self.data = {'cmd': 1, 'num_msgs': '50', 
-                     'spam_msg': ['FROM THE RIVER TO THE SEA', 
-                                  'PALESTINE WILL BE FREE']
+                     'spam_msg': ['huhuhu', 
+                                  'hehehe']
                      }
         return
 
