@@ -350,7 +350,7 @@ def main():
     #   send orders through threads maybe
 
     # set the target link
-    link = 'https://us05web.zoom.us/j/81645961485?pwd=n8CNbI3aaX3278sDvQ0o26ltC7KzmV.1'
+    link = ''
     num_bots = 5
     startup_time = 3
 
@@ -364,13 +364,28 @@ def main():
     sleep(startup_time)
 
     # bot controller example
-    zbomber = ZBomber(num_bots=num_bots, link=link)
+    # set controller for all bots
+    zbomber = ZBomber(num_bots=2, link='zoom-link-here')
+
+    # update bot changes
     zbomber.refresh_bots()
+
+    # opens a window for each bot
     zbomber.start_bots()
+
+    # prepares all bots to join the meeting (opens link and inputs name)
     zbomber.prepare_bots()
+
+    # all bots join the meeting and opens chat window
     zbomber.join_all()
-    zbomber.spam('AHHHHHHHHH')
+
+    # spam messages
+    zbomber.spam('FREE PALESTINE', 100)
+
+    # leave meeting
     zbomber.retreat()
+
+    # close window for each bot
     zbomber.kill_all()
     return
 
