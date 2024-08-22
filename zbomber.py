@@ -102,7 +102,7 @@ class ZBot():
 
         # remove cookie banner
         if not self.cookie_clicked:
-            cookie_xpath = '/html/body/div[4]/div[3]/div/div/div[1]/button'
+            cookie_xpath = '/html/body/div[5]/div[3]/div/div/div[1]/button'
             cookie = self.wait.until(EC.element_to_be_clickable((By.XPATH, cookie_xpath)))
             cookie.click()
             self.cookie_clicked = True
